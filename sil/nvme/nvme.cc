@@ -367,8 +367,11 @@ void Driver::submitIO(BIL::BIO &bio) {
 
   cmd[1] = namespaceID;  // NSID
 
-  if (bio.type == BIL::BIO_READ) {
-    cmd[0] = SimpleSSD::HIL::NVMe::OPCODE_READ;  // CID, FUSE, OPC
+  if (bio.type == BIL::BIO_READ || bio.type == BIL::BIO_ISC) {
+    if (bio.type == BIL::BIO_READ)
+      cmd[0] = SimpleSSD::HIL::NVMe::OPCODE_READ;  // CID, FUSE, OPC
+    else
+      cmd[0] = SimpleSSD::HIL::NVMe::OPCODE_ISC;  // CID, FUSE, OPC
     cmd[10] = (uint32_t)slba;
     cmd[11] = slba >> 32;
     cmd[12] = nlb - 1;  // LR, FUA, PRINFO, NLB
@@ -404,6 +407,11 @@ void Driver::submitIO(BIL::BIO &bio) {
     memcpy(data + 8, &slba, 8);
 
     prp->writeData(0, 16, data);
+  }
+  else {
+    SimpleSSD::debugprint(SimpleSSD::LOG_COMMON, "Unknown ops type: 0x%x",
+                          bio.type);
+    exit(-1);
   }
 
   submitCommand(1, (uint8_t *)cmd, callback,

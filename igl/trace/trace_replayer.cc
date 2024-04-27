@@ -273,6 +273,8 @@ BIL::BIO_TYPE TraceReplayer::getType(std::string type) {
     case 'd':
     case 'D':
       return BIL::BIO_TRIM;
+    case 'S':
+      return BIL::BIO_ISC;
   }
 
   return BIL::BIO_NUM;

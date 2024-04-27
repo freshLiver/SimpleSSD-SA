@@ -24,4 +24,5 @@ BraceWrapping:
 BreakBeforeBraces: Custom
 DerivePointerAlignment: false
 PointerAlignment: Right
+IncludeBlocks: Preserve
 ...

@@ -1,0 +1,20 @@
+name: build-and-run
+run-name: building/running SimpleSSD-SA
+on: [push]
+jobs:
+  build-and-run:
+    runs-on: ubuntu-20.04
+    steps:
+      - name: init repo
+        uses: actions/checkout@v4
+        with:
+          token: ${{ secrets.SSS_PAT_EXP250130 }}
+          submodules: recursive
+      - name: prepare env
+        run: sudo apt-get -y update && sudo apt-get -y install build-essential cmake
+      - name: build
+        run: cmake -B . && cmake --build . -j`nproc` && mkdir logs
+      - name: run
+        run: ./simplessd-standalone ./config/sample.cfg ./simplessd/config/sample.cfg .
+      - name: result
+        run: cat logs/debug.log && cat logs/stat.log

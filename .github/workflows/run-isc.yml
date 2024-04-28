@@ -13,8 +13,6 @@ jobs:
       - name: prepare env
         run: sudo apt-get -y update && sudo apt-get -y install build-essential cmake
       - name: build
-        run: cmake -B . && cmake --build . -j`nproc` && mkdir logs
+        run: cmake -B . && cmake --build . -j`nproc`
       - name: run
         run: ./simplessd-standalone ./config/sample.cfg ./simplessd/config/sample.cfg .
-      - name: result
-        run: cat logs/debug.log && cat logs/stat.log

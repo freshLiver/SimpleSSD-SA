@@ -14,5 +14,9 @@ jobs:
         run: sudo apt-get -y update && sudo apt-get -y install build-essential cmake
       - name: build
         run: cmake -B . && cmake --build . -j`nproc`
+      - name: create disk
+        run: dd if=/dev/zero of=nvme.img bs=1M count=16
+      - name: init ext4 disk
+        run: ./simplessd/isc/scripts/mke2fs nvme.img
       - name: run
         run: ./simplessd-standalone ./config/sample.cfg ./simplessd/config/sample.cfg .

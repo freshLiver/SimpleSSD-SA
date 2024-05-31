@@ -274,7 +274,17 @@ BIL::BIO_TYPE TraceReplayer::getType(std::string type) {
     case 'D':
       return BIL::BIO_TRIM;
     case 'S':
-      return BIL::BIO_ISC;
+      switch (type[1]) {
+        case 'G':
+          return BIL::BIO_ISC_GET;
+        case 'S':
+          return BIL::BIO_ISC_SET;
+        default:
+          SimpleSSD::panic("Unknown ISC Type: %s", &(type.c_str()[1]));
+          exit(-1);
+      }
+    default:
+      SimpleSSD::panic("Unknown Type: %s", type.c_str());
   }
 
   return BIL::BIO_NUM;

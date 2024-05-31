@@ -366,11 +366,11 @@ void Driver::submitIO(BIL::BIO &bio) {
 
   cmd[1] = namespaceID;  // NSID
 
-  if (bio.type == BIL::BIO_READ || bio.type == BIL::BIO_ISC) {
+  if (bio.type == BIL::BIO_READ || bio.type == BIL::BIO_ISC_GET) {
     if (bio.type == BIL::BIO_READ)
       cmd[0] = SimpleSSD::HIL::NVMe::OPCODE_READ;  // CID, FUSE, OPC
     else
-      cmd[0] = SimpleSSD::HIL::NVMe::OPCODE_ISC;  // CID, FUSE, OPC
+      cmd[0] = SimpleSSD::HIL::NVMe::OPCODE_ISC_GET;  // CID, FUSE, OPC
     cmd[10] = (uint32_t)slba;
     cmd[11] = slba >> 32;
     cmd[12] = nlb - 1;  // LR, FUA, PRINFO, NLB
@@ -378,7 +378,7 @@ void Driver::submitIO(BIL::BIO &bio) {
     prp = new PRP(bio.length);
     prp->getPointer(*(uint64_t *)(cmd + 6), *(uint64_t *)(cmd + 8));  // DPTR
   }
-  else if (bio.type == BIL::BIO_WRITE) {
+  else if (bio.type == BIL::BIO_WRITE || bio.type == BIL::BIO_ISC_SET) {
     cmd[0] = SimpleSSD::HIL::NVMe::OPCODE_WRITE;  // CID, FUSE, OPC
     cmd[10] = (uint32_t)slba;
     cmd[11] = slba >> 32;

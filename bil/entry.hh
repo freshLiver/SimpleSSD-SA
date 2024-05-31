@@ -40,7 +40,8 @@ enum BIO_TYPE : uint8_t {
   BIO_WRITE,
   BIO_FLUSH,
   BIO_TRIM,
-  BIO_ISC,
+  BIO_ISC_GET,
+  BIO_ISC_SET,
   BIO_NUM,
 };
 

@@ -22,6 +22,8 @@
 #include "simplessd/sim/trace.hh"
 #include "simplessd/util/algorithm.hh"
 
+#include "util/b64.hh"
+
 namespace IGL {
 
 TraceReplayer::TraceReplayer(Engine &e, BIL::BlockIOEntry &b,
@@ -81,6 +83,8 @@ TraceReplayer::TraceReplayer(Engine &e, BIL::BlockIOEntry &b,
       (uint32_t)c.readUint(CONFIG_TRACE, TRACE_GROUP_NANO_SEC);
   groupID[ID_TIME_PS] =
       (uint32_t)c.readUint(CONFIG_TRACE, TRACE_GROUP_PICO_SEC);
+  groupID[ID_DATA_ENCODED] =
+      (uint32_t)c.readUint(CONFIG_TRACE, TRACE_GROUP_DATA_ENCODED);
   useHex = c.readBoolean(CONFIG_TRACE, TRACE_USE_HEX);
 
   if (groupID[ID_OPERATION] == 0) {
@@ -346,6 +350,21 @@ void TraceReplayer::parseLine() {
 
   // This function increases I/O count
   linedata.type = getType(match[groupID[ID_OPERATION]].str());
+
+  // parse encoded data
+  if (linedata.type == BIL::BIO_WRITE || linedata.type == BIL::BIO_ISC_SET) {
+    auto in = match[groupID[ID_DATA_ENCODED]].str();
+    size_t isz = strlen(in.c_str());
+
+    SimpleSSD::debugprint(SimpleSSD::LOG_COMMON, "try decode: '%s'",
+                          in.c_str());
+    SimpleSSD::decode(in.c_str(), isz, (char **)&linedata.data,
+                      &linedata.dsize);
+  }
+  else {
+    linedata.dsize = 0;
+    linedata.data = nullptr;
+  }
 }
 
 void TraceReplayer::submitIO() {
@@ -360,6 +379,8 @@ void TraceReplayer::submitIO() {
   bio.type = linedata.type;
   bio.offset = linedata.offset;
   bio.length = linedata.length;
+  bio.data = linedata.data;
+  bio.dsize = linedata.dsize;
 
   bioEntry.submitIO(bio);
 

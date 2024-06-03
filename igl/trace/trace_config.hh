@@ -42,6 +42,7 @@ typedef enum {
   TRACE_GROUP_MICRO_SEC,
   TRACE_GROUP_NANO_SEC,
   TRACE_GROUP_PICO_SEC,
+  TRACE_GROUP_DATA_ENCODED,
   TRACE_LBA_SIZE,
   TRACE_USE_HEX,
 } TRACE_CONFIG;
@@ -70,6 +71,7 @@ class TraceConfig : public SimpleSSD::BaseConfig {
   uint32_t groupMicroSecond;
   uint32_t groupNanoSecond;
   uint32_t groupPicoSecond;
+  uint32_t groupDataEncoded;
   uint32_t lbaSize;
   bool useHexadecimal;
 

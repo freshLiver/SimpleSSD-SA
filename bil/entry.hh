@@ -53,6 +53,9 @@ typedef struct _BIO {
   uint64_t offset;
   uint64_t length;
 
+  uint8_t *data;
+  size_t dsize;
+
   // I/O completion
   std::function<void(uint64_t)> callback;
 

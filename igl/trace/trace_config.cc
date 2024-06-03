@@ -38,6 +38,7 @@ const char NAME_GROUP_MILI_SEC[] = "Millisecond";
 const char NAME_GROUP_MICRO_SEC[] = "Microsecond";
 const char NAME_GROUP_NANO_SEC[] = "Nanosecond";
 const char NAME_GROUP_PICO_SEC[] = "Picosecond";
+const char NAME_GROUP_DATA_ENCODED[] = "DataEncoded";
 const char NAME_LBA_SIZE[] = "LBASize";
 const char NAME_USE_HEX[] = "UseHexadecimal";
 
@@ -55,6 +56,7 @@ TraceConfig::TraceConfig() {
   groupMicroSecond = 0;
   groupNanoSecond = 0;
   groupPicoSecond = 0;
+  groupDataEncoded = 0;
   lbaSize = 512;
   useHexadecimal = false;
 }
@@ -106,6 +108,9 @@ bool TraceConfig::setConfig(const char *name, const char *value) {
   }
   else if (MATCH_NAME(NAME_GROUP_PICO_SEC)) {
     groupPicoSecond = strtoul(value, nullptr, 10);
+  }
+  else if (MATCH_NAME(NAME_GROUP_DATA_ENCODED)) {
+    groupDataEncoded = strtoul(value, nullptr, 10);
   }
   else if (MATCH_NAME(NAME_LBA_SIZE)) {
     lbaSize = strtoul(value, nullptr, 10);
@@ -196,6 +201,9 @@ uint64_t TraceConfig::readUint(uint32_t idx) {
       break;
     case TRACE_GROUP_PICO_SEC:
       ret = groupPicoSecond;
+      break;
+    case TRACE_GROUP_DATA_ENCODED:
+      ret = groupDataEncoded;
       break;
     case TRACE_LBA_SIZE:
       ret = lbaSize;

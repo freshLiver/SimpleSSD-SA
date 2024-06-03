@@ -122,6 +122,7 @@ set(SRC_UTIL
   util/convert.cc
   util/print.cc
   util/stopwatch.cc
+  util/b64.cc
 )
 
 # Source group for MSVC

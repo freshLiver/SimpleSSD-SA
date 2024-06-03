@@ -48,6 +48,7 @@ class TraceReplayer : public IOGenerator {
     ID_TIME_US,
     ID_TIME_NS,
     ID_TIME_PS,
+    ID_DATA_ENCODED,
     ID_NUM
   };
 
@@ -97,6 +98,9 @@ class TraceReplayer : public IOGenerator {
     uint64_t offset;
     uint64_t length;
     BIL::BIO_TYPE type;
+
+    uint8_t *data;
+    size_t dsize;
 
     TraceLine() : tick(0), offset(0), length(0), type(BIL::BIO_NUM) {}
   } linedata;

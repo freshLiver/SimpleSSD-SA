@@ -30,6 +30,8 @@ Driver::Driver(Engine &e, SimpleSSD::ConfigReader &conf)
     : BIL::DriverInterface(e),
       dmaReadPending(false),
       dmaWritePending(false),
+      adminCommandID(0),
+      ioCommandID(0),
       phase(true),
       adminSQ(nullptr),
       adminCQ(nullptr),

@@ -20,3 +20,5 @@ jobs:
         run: ./simplessd/isc/scripts/mke2fs nvme.img
       - name: run
         run: ./simplessd-standalone ./config/sample.cfg ./simplessd/config/sample.cfg .
+      - name: show logs
+        run: cat ./LogPeriodic.txt

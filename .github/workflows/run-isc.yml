@@ -11,13 +11,13 @@ jobs:
           token: ${{ secrets.SSS_PAT_EXP250130 }}
           submodules: recursive
       - name: prepare env
-        run: sudo apt-get -y update && sudo apt-get -y install build-essential cmake
+        run: sudo apt-get -y update && sudo apt-get -y install build-essential cmake e2fsprogs libext2fs-dev
       - name: build
         run: cmake -B . && cmake --build . -j`nproc`
-      - name: create disk
-        run: dd if=/dev/zero of=nvme.img bs=1M count=16
-      - name: init ext4 disk
-        run: ./simplessd/isc/scripts/mke2fs nvme.img
+      - name: create and init ext4 disk
+        run: make -f simplessd/isc/scripts/Makefile ext4-init EXT4_INIT_SCRIPT_FILES=mkdirs-1000x10.sh
+      - name: link ext4 disk as ssd disk
+        run: ln -s /tmp/nvme.img .
       - name: run
         run: ./simplessd-standalone ./config/sample.cfg ./simplessd/config/sample.cfg .
       - name: show logs

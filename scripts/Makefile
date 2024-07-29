@@ -20,13 +20,11 @@ run:
 vrun:
 	${VALGRIND_CMD} ./simplessd-standalone ${SYSCONF} ${SSDCONF} ${ODIR}
 
-rebuild: CLEAN_FIRST = --clean-first
-rebuild: build
+rebuild: clean build
 
 build:
 	cmake ${CMAKE_EX_FLAGS} -DDEBUG_BUILD=on -B .
-	cmake --build . -j8 ${CLEAN_FIRST}
-
+	cmake --build . -j8
 
 clean:
 	rm -rf CMakeCache.txt CMakeFiles

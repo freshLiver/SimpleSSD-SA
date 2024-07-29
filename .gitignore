@@ -36,3 +36,14 @@ compile_flags.txt
 # VSCode Specific
 .vscode/
 *.code-workspace
+
+# tmp
+.TODO
+.cache
+*.img
+*.bak
+logs/
+*.log
+*.txt
+workloads/
+**/tmp/

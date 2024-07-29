@@ -15,7 +15,7 @@ jobs:
       - name: build
         run: cmake -B . && cmake --build . -j`nproc`
       - name: create and init ext4 disk
-        run: make -f simplessd/isc/scripts/Makefile ext4-init EXT4_INIT_SCRIPT_FILES=mkdirs-1000x10.sh
+        run: make -f simplessd/isc/scripts/Makefile ext4-init EXT4_INIT_SCRIPT_FILES=md5-files.sh
       - name: link ext4 disk as ssd disk
         run: ln -s /tmp/nvme.img .
       - name: run

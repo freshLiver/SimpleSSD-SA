@@ -1,15 +1,9 @@
 #!/bin/bash
 statLogFile=$1
-simSumFile=$2
 
-if [[ "$#" -ne 2 ]]; then
-    echo "Usage: $0 statLogFile simSumFile"
+if [[ "$#" -ne 1 ]]; then
+    echo "Usage: $0 statLogFile"
     exit 1
-fi
-
-# init sum file
-if [[ ! -e "$simSumFile" ]]; then
-    touch "$simSumFile"
 fi
 
 # ---------------------------------------------------------------------------- #
@@ -53,7 +47,7 @@ function ftoi() {
 
 function print_log() {
     # Usage: text
-    echo -e "$1" | tee -a "$simSumFile"
+    echo -e "$1"
 }
 
 function print_cores_time_diff() {

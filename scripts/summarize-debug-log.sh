@@ -8,7 +8,7 @@ FILE=$1
 BegTick=$2
 EndTick=$3
 
-if [ "$BegTick" -ge "$EndTick" ]; then
+if [[ "$BegTick" -ge "$EndTick" ]]; then
     echo "BegTick (${BegTick}) must be less than EndTick (${EndTick})"
     exit 1
 fi

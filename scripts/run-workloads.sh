@@ -163,6 +163,32 @@ function update_workload() {
     fi
 }
 
+function extract_beg_end_tick() {
+    # Usage: $simLogFile
+
+    # Because the SA simulator always adjusts the request issue time to speed up
+    # simulation (check TraceReplayer::submitIO() for details), we cannot use
+    # the request time defined in the workload file as begTick and endTick to
+    # extract the needed range of debug logs.
+    #
+    # To address this problem, we can use the adjusted RECORD time from the
+    # output of SA simulator ($simLogFile).
+    #
+    # However, in current implementation, the RECORD time only indicates when
+    # the request is handled by the subsystem, instead of the real request issue
+    # time. But this only make us miss some debug logs of the controller, which
+    # is affordable in current needs.
+
+    # extract time of records
+    local records="$(grep -P "^RECORD: \d+\.\d+" "$1" | grep -oP '\d+\.\d+')"
+
+    # find the second and last record
+    local psRecords=($(sed -E 's/([0-9]+)\.([0-9]{12})/\1\2/g' <<< "$records"))
+    local psRecord1=${psRecords[1]#0*}
+    local psRecordN=${psRecords[-1]#0*}
+    echo "$psRecord1 $psRecordN"
+}
+
 # ---------------------------------------------------------------------------- #
 #                                  main logics                                 #
 # ---------------------------------------------------------------------------- #
@@ -219,7 +245,8 @@ for workFile in ${WORKLOAD_FILES[@]}; do
     echo -e "SimpleSSD-SA returned status: $? \n\n"
 
     # summarize this workload
-    echo -n "" > "$simSumFile"
-    bash "$(dirname $0)/summarize-stat-log.sh" "$statLogFile" "$simSumFile"
-    bash "$(dirname $0)/summarize-debug-log.sh" "$debugLogFile" "$simSumFile"
+    bash "$(dirname $0)/summarize-stat-log.sh" "$statLogFile" > "$simSumFile"
+
+    read begTick endTick <<< "$(extract_beg_end_tick $simLogFile)"
+    bash "$(dirname $0)/summarize-debug-log.sh" "$debugLogFile" "$begTick" "$endTick" >> "$simSumFile"
 done

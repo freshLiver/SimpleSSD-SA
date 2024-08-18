@@ -46,8 +46,7 @@ extract_tick_range_from_file() {
         print
 
         if ((LINE_LAST_COUNT != -1) && (LINE_NOW - 1 != LINE_LAST_COUNT)) {
-            printf "\nERROR: Unexpected line in (%d,%d)\n", LINE_LAST_COUNT, LINE_NOW | "cat 1>&2"
-            exit -1
+            printf "\n\x1b[33;49;1mERROR: Unexpected line in (%d,%d)\x1b[0m\n", LINE_LAST_COUNT, LINE_NOW | "cat 1>&2"
         }
         LINE_LAST_COUNT = LINE_NOW
     }
@@ -146,8 +145,8 @@ if [ $? -ne 0 ]; then
 fi
 
 # HIL
-HIL_LAT_MAIN_FMT="HIL::NVMe: NVM     \|[ \-A-Za-z0-9]+\| .* \d+ - \d+ \(\d+\)$"
-lats_summary "HIL" "$HIL_LAT_MAIN_FMT" "$LATS_RANGE"
+# HIL_LAT_MAIN_FMT="HIL::NVMe: NVM     \|[ \-A-Za-z0-9]+\| .* \d+ - \d+ \(\d+\)$"
+# lats_summary "HIL" "$HIL_LAT_MAIN_FMT" "$LATS_RANGE"
 
 
 # ICL

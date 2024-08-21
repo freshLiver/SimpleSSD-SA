@@ -205,7 +205,7 @@ for workFile in ${WORKLOAD_FILES[@]}; do
 
     # create workload related files
     LOG_DIR="$LOG_BASEDIR/$(date +%y%m)/$LOG_SUBDIR/$work"
-    LOG_PREFIX="$(date +%H%M%S)"
+    LOG_PREFIX="$(date +%d-%H%M%S)"
     mkdir -p "$LOG_DIR"
     echo "Log prefix: $LOG_SUBDIR/$work/$LOG_PREFIX"
 

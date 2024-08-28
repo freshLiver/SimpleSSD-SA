@@ -26,5 +26,12 @@ build:
 	cmake ${CMAKE_EX_FLAGS} -DDEBUG_BUILD=on -B .
 	cmake --build . -j8
 
+SLET_ID		:= 1
+KEYS		:= ""
+VALUES		:= ""
+RES_LBAS	:= 1
+test-slet:
+	./scripts/test-slet.sh ${SLET_ID} "${KEYS}" "${VALUES}" "${RES_LBAS}"
+
 clean:
 	rm -rf CMakeCache.txt CMakeFiles

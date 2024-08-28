@@ -148,7 +148,7 @@ function update_workload() {
     req1Time=$(grep -m1 -oP "$regex" "$simInputFile" | awk '{ print $1 }')
 
     # insert init request at $sLogPeriod secs before first request
-    req0Time=$(echo "$req1Time - $sLogPeriod" | bc)
+    req0Time=$(echo "$req1Time - $sLogPeriod" | bc | awk '{printf "%0.12f", $0}')
     workType=$(awk '$2 ~ /S[SG]/ { printf "ISC"; exit; }' "$simInputFile")
 
     if [[ "$workType" == "ISC" ]]; then

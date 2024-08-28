@@ -36,6 +36,7 @@ compile_flags.txt
 # VSCode Specific
 .vscode/
 *.code-workspace
+.editorconfig
 
 # tmp
 .TODO
@@ -44,6 +45,7 @@ compile_flags.txt
 *.bak
 logs/
 *.log
+logs-sa/
 *.txt
 workloads/
 **/tmp/

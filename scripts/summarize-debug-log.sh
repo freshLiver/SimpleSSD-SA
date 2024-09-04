@@ -108,37 +108,36 @@ lats_summary() {
     echo -e "\tThere are ${LATS_NR} accesses"
 
     if [ "$1" == "NVM" ]; then
-        echo -e "\tTotal latency: N/A (don't know MSB/LSB access ratio)"
-    elif [ "$1" == "ISC" ]; then
-        echo -e "\tTotal latency: N/A (no latency info yet)"
-    else
-        local DIFFS=$(echo "$LATS_BASE" | grep -oP "\(\d+\)$" | grep -oP "\d+")
-        local RANGES=$(echo "$LATS_BASE" | grep -oP "\d+ \- \d+")
-
-        echo -e "\tTotal latency: $(echo "$DIFFS" | paste -sd+ | bc) ps"
-        lats_no_overlap "$RANGES"
-
-        # ICL need more info
-        if [ "$1" == "ICL" ]; then
-            # cache hit rate
-            local HITS=$(echo "$LATS_BASE" | grep "Cache hit" | wc -l)
-            local RATE=$(echo "scale=4; ${HITS} / ${LATS_NR}" | bc)
-            echo -e "\n\tHit rate: ${RATE} (${HITS}/${LATS_NR})"
-
-            # access sizes
-            echo "$3" | grep -P "GenericCache.*SIZE \d+$" | grep -oP "SIZE \d+$" | awk '
-                { size[$2] += 1 }
-                END {
-                    for (s in size)
-                        printf "\t\t\t%d Byte x %d\n", s, size[s]
-                }
-            '
-        fi
+        LATS_BASE=$(echo "$3" | grep -P "PAL::PALOLD: READ Time:")
+        LATS_NR=$(echo "$LATS_BASE" | wc -l)
     fi
 
+    local DIFFS=$(echo "$LATS_BASE" | grep -oP "\(\d+\)$" | grep -oP "\d+")
+    local RANGES=$(echo "$LATS_BASE" | grep -oP "\d+ \- \d+")
+
+    echo -e "\tTotal latency: $(echo "$DIFFS" | paste -sd+ | bc) ps"
+    lats_no_overlap "$RANGES"
+
+    # ICL need more info
+    if [ "$1" == "ICL" ]; then
+        # cache hit rate
+        local HITS=$(echo "$LATS_BASE" | grep "Cache hit" | wc -l)
+        local RATE=$(echo "scale=4; ${HITS} / ${LATS_NR}" | bc)
+        echo -e "\n\tHit rate: ${RATE} (${HITS}/${LATS_NR})"
+
+        # access sizes
+        echo "$3" | grep -P "GenericCache.*SIZE \d+$" | grep -oP "SIZE \d+$" | awk '
+            { size[$2] += 1 }
+            END {
+                for (s in size)
+                    printf "\t\t\t%d Byte x %d\n", s, size[s]
+            }
+        '
+    fi
 }
 
 # Extract needed lines
+echo "Tick Range: $BegTick $EndTick"
 LATS_RANGE="$(extract_tick_range_from_file "$FILE" $BegTick $EndTick)"
 if [ $? -ne 0 ]; then
     exit -1

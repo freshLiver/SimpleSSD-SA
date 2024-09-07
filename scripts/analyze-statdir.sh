@@ -1,22 +1,6 @@
 #!/bin/bash
 
-SRCDIR="$HOME/Dropbox/Notes/_david/research/logs/statdir"
-DSTDIR="workloads/statdir"
-
-workloads=(
-    "fsa 240809-135508- d1-f1000"
-    "fsa 240809-141027- d1-f2000"
-    "fsa 240809-142655- d1-f4000"
-    "fsa 240809-144501- d4-f1000"
-    "fsa 240809-145959- d4-f2000"
-    "fsa 240809-151650- d4-f4000"
-    # "host 240807-113403- d1-f1000"
-    # "host 240807-114938- d1-f2000"
-    # "host 240807-120424- d1-f4000"
-    # "host 240807-121955- d4-f1000"
-    # "host 240807-123516- d4-f2000"
-    # "host 240807-125007- d4-f4000"
-)
+ssfx=${1:-""}
 
 function check_ret() {
     # Usage $? msg
@@ -27,28 +11,59 @@ function check_ret() {
     fi
 }
 
-for work in "${workloads[@]}"; do
-    read type timestamp pfx <<< "$work"
+WORKLOAD_NAME="statdir"
+SRCDIR="$HOME/Dropbox/Notes/_david/research/logs/$WORKLOAD_NAME"
+DSTDIR="workloads/$WORKLOAD_NAME"
 
-    gem5LogFile="$SRCDIR/$type/$timestamp$pfx.log"
-    hostLogFile="$SRCDIR/$type/$timestamp$pfx.host.log"
+fsa=(
+    "240903-055017- d1-f1000-fix-lat"
+    "240903-060745- d1-f2000-fix-lat"
+    "240903-062515- d1-f4000-fix-lat"
+    "240903-064658- d4-f1000-fix-lat"
+    "240903-070437- d4-f2000-fix-lat"
+    "240903-072225- d4-f4000-fix-lat"
+)
+host=(
+    "240903-075024- d1-f1000-1g"
+    "240903-080525- d1-f2000-1g"
+    "240903-082104- d1-f4000-1g"
+    "240903-083725- d4-f1000-1g"
+    "240903-085339- d4-f2000-1g"
+    "240903-091003- d4-f4000-1g"
+)
 
+
+workloads=(
+    "host host[@] *"
+    "fsa fsa[@] *"
+)
+
+for type_works in "${workloads[@]}"; do
+    read type works filter <<< "$type_works"
     outdir="$DSTDIR/$type"
-    outfile="$outdir/$pfx.trace"
-    mkdir -p "$outdir"
 
-    # generate workload from gem5 logs
-    bash "$(dirname $0)/gen-workload.sh" "$gem5LogFile" "$hostLogFile" > "$outfile"
-    check_ret $? "Error during generating workload '$pfx'"
+    # extract info from this type of workloads
+    for work in "${!works}"; do
+        read timestamp pfx <<< "$work"
 
-    echo "Workload file is saved at: $outfile"
-done
+        gem5LogFile="$SRCDIR/$type/$timestamp$pfx.log"
+        hostLogFile="$SRCDIR/$type/$timestamp$pfx.host.log"
+        if [[ ! -e "$gem5LogFile" || ! -e "$hostLogFile" ]]; then
+            echo "Log file $gem5LogFile or $hostLogFile is missing"
+            exit 1
+        fi
 
-# analyze workload with SA
-types=("fsa")
-for type in "${types[@]}"; do
-    outdir="$DSTDIR/$type"
+        outfile="$outdir/$pfx.trace"
+        mkdir -p "$outdir"
 
-    "$(dirname $0)/run-workloads.sh" "$outdir/*" "statdir-$type"
+        # generate workload from gem5 logs
+        bash "$(dirname $0)/gen-workload.sh" "$gem5LogFile" "$hostLogFile" > "$outfile"
+        check_ret $? "Error during generating workload '$pfx'"
+
+        echo "Workload file is saved at: $outfile"
+    done
+
+    # analyze workloads of this type
+    "$(dirname $0)/run-workloads.sh" "$outdir/$filter" "$WORKLOAD_NAME-$type$ssfx"
     check_ret $? "Error during analyzing $type workloads"
 done

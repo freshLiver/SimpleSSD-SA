@@ -22,6 +22,7 @@
 #ifndef __IGL_TRACE_REPLAYER__
 #define __IGL_TRACE_REPLAYER__
 
+#include <pcre.h>
 #include <fstream>
 #include <list>
 #include <mutex>
@@ -56,6 +57,7 @@ class TraceReplayer : public IOGenerator {
 
   std::ifstream file;
   std::regex regex;
+  pcre *pcregex;
 
   uint64_t fileSize;
 
@@ -88,7 +90,7 @@ class TraceReplayer : public IOGenerator {
 
   uint64_t io_depth;
 
-  uint64_t mergeTime(std::smatch &);
+  uint64_t mergeTime(std::vector<std::string> &match);
   BIL::BIO_TYPE getType(std::string);
   void parseLine();
   void rescheduleSubmit(uint64_t);

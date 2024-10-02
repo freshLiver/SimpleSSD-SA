@@ -146,4 +146,5 @@ add_executable(simplessd-standalone
   ${SRC_SIM}
   ${SRC_UTIL}
 )
-target_link_libraries(simplessd-standalone simplessd)
+target_link_directories(simplessd-standalone PRIVATE simplessd lib)
+target_link_libraries(simplessd-standalone PRIVATE simplessd cpptrace dwarf dl z zstd pcre)

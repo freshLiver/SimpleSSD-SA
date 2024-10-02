@@ -52,7 +52,12 @@ TraceReplayer::TraceReplayer(Engine &e, BIL::BlockIOEntry &b,
 
   // Create regex
   try {
-    regex = std::regex(c.readString(CONFIG_TRACE, TRACE_LINE_REGEX));
+    int errofs;
+    const char *pcre_err;
+
+    std::string pattern = c.readString(CONFIG_TRACE, TRACE_LINE_REGEX);
+    regex = std::regex(pattern);
+    pcregex = pcre_compile(pattern.c_str(), 0, &pcre_err, &errofs, NULL);
   }
   catch (std::regex_error &e) {
     SimpleSSD::panic("Invalid regular expression!");
@@ -135,6 +140,7 @@ TraceReplayer::TraceReplayer(Engine &e, BIL::BlockIOEntry &b,
 
 TraceReplayer::~TraceReplayer() {
   file.close();
+  pcre_free(pcregex);
 }
 
 void TraceReplayer::init(uint64_t bytesize, uint32_t bs) {
@@ -205,44 +211,40 @@ void TraceReplayer::getProgress(float &val) {
   }
 }
 
-uint64_t TraceReplayer::mergeTime(std::smatch &match) {
+uint64_t TraceReplayer::mergeTime(std::vector<std::string> &match) {
   uint64_t tick = 0;
   bool valid = true;
 
   if (timeValids[0] && match.size() > groupID[ID_TIME_SEC]) {
-    tick += strtoul(match[groupID[ID_TIME_SEC]].str().c_str(), nullptr, 10) *
-            1000000000000ULL;
+    tick += strtoul(match[groupID[ID_TIME_SEC]].c_str(), nullptr, 10) * 1e12;
   }
   else if (timeValids[0]) {
     valid = false;
   }
 
   if (timeValids[1] && match.size() > groupID[ID_TIME_MS]) {
-    tick += strtoul(match[groupID[ID_TIME_MS]].str().c_str(), nullptr, 10) *
-            1000000000ULL;
+    tick += strtoul(match[groupID[ID_TIME_MS]].c_str(), nullptr, 10) * 1e9;
   }
   else if (timeValids[1]) {
     valid = false;
   }
 
   if (timeValids[2] && match.size() > groupID[ID_TIME_US]) {
-    tick += strtoul(match[groupID[ID_TIME_US]].str().c_str(), nullptr, 10) *
-            1000000ULL;
+    tick += strtoul(match[groupID[ID_TIME_US]].c_str(), nullptr, 10) * 1e6;
   }
   else if (timeValids[2]) {
     valid = false;
   }
 
   if (timeValids[3] && match.size() > groupID[ID_TIME_NS]) {
-    tick += strtoul(match[groupID[ID_TIME_NS]].str().c_str(), nullptr, 10) *
-            1000ULL;
+    tick += strtoul(match[groupID[ID_TIME_NS]].c_str(), nullptr, 10) * 1e3;
   }
   else if (timeValids[3]) {
     valid = false;
   }
 
   if (timeValids[4] && match.size() > groupID[ID_TIME_PS]) {
-    tick += strtoul(match[groupID[ID_TIME_PS]].str().c_str(), nullptr, 10);
+    tick += strtoul(match[groupID[ID_TIME_PS]].c_str(), nullptr, 10);
   }
   else if (timeValids[4]) {
     valid = false;
@@ -296,7 +298,9 @@ BIL::BIO_TYPE TraceReplayer::getType(std::string type) {
 
 void TraceReplayer::parseLine() {
   std::string line;
-  std::smatch match;
+
+  const int MAX_GROUPS = 10;
+  int nmatch, ovector[MAX_GROUPS * 3];
 
   // Read line
   while (true) {
@@ -319,9 +323,23 @@ void TraceReplayer::parseLine() {
 
       return;
     }
-    if (std::regex_match(line, match, regex)) {
+    // trim trailing spaces
+    int nspaces = 0;
+    for (int i = line.length() - 1; i >= 0 && line[i] == ' '; --i, ++nspaces)
+      ;
+    line.resize(line.length() - nspaces);
+
+    if (0 <= (nmatch = pcre_exec(pcregex, NULL, line.c_str(), line.length(), 0,
+                                 0, ovector, 30))) {
       break;
     }
+  }
+
+  // convert table to string groups
+  std::vector<std::string> match;
+  for (int i = 0; i < nmatch; ++i) {
+    int s = ovector[i * 2], e = ovector[i * 2 + 1];
+    match.push_back(line.substr(s, e - s));
   }
 
   // Get time
@@ -329,31 +347,31 @@ void TraceReplayer::parseLine() {
 
   // Fill BIO
   if (useLBAOffset) {
-    linedata.offset = strtoul(match[groupID[ID_LBA_OFFSET]].str().c_str(),
-                              nullptr, useHex ? 16 : 10) *
+    linedata.offset = strtoul(match[groupID[ID_LBA_OFFSET]].c_str(), nullptr,
+                              useHex ? 16 : 10) *
                       lbaSize;
   }
   else {
-    linedata.offset = strtoul(match[groupID[ID_BYTE_OFFSET]].str().c_str(),
-                              nullptr, useHex ? 16 : 10);
+    linedata.offset = strtoul(match[groupID[ID_BYTE_OFFSET]].c_str(), nullptr,
+                              useHex ? 16 : 10);
   }
 
   if (useLBALength) {
-    linedata.length = strtoul(match[groupID[ID_LBA_LENGTH]].str().c_str(),
-                              nullptr, useHex ? 16 : 10) *
+    linedata.length = strtoul(match[groupID[ID_LBA_LENGTH]].c_str(), nullptr,
+                              useHex ? 16 : 10) *
                       lbaSize;
   }
   else {
-    linedata.length = strtoul(match[groupID[ID_BYTE_LENGTH]].str().c_str(),
-                              nullptr, useHex ? 16 : 10);
+    linedata.length = strtoul(match[groupID[ID_BYTE_LENGTH]].c_str(), nullptr,
+                              useHex ? 16 : 10);
   }
 
   // This function increases I/O count
-  linedata.type = getType(match[groupID[ID_OPERATION]].str());
+  linedata.type = getType(match[groupID[ID_OPERATION]]);
 
   // parse encoded data
   if (linedata.type == BIL::BIO_WRITE || linedata.type == BIL::BIO_ISC_SET) {
-    auto in = match[groupID[ID_DATA_ENCODED]].str();
+    auto in = match[groupID[ID_DATA_ENCODED]];
     size_t isz = strlen(in.c_str());
 
     SimpleSSD::debugprint(SimpleSSD::LOG_COMMON, "try decode: '%s'",

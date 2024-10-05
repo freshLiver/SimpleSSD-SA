@@ -22,6 +22,9 @@
 #include "simplessd/hil/nvme/def.hh"
 #include "simplessd/util/algorithm.hh"
 
+#include "simplessd/isc/utils/debug.hh"
+#define PR_SECTION LOG_COMMON
+
 namespace SIL {
 
 namespace NVMe {
@@ -465,6 +468,12 @@ void Driver::dmaRead(uint64_t addr, uint64_t size, uint8_t *buffer,
   iter.size = size;
   iter.buffer = buffer;
   iter.context = context;
+
+  // char msg[51] = {0};
+  // snprintf(msg, 50, "Driver::DMA %lu bytes from %lX\n", size, addr);
+  // if (*(uint64_t*)addr == UINT64_MAX)
+  //   SimpleSSD::Utils::pipe2xxd(msg, (char *)addr - 4096, size, NULL);
+
 
   if (!dmaReadPending) {
     submitDMARead();

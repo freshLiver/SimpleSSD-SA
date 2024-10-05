@@ -25,6 +25,9 @@
 #include "simplessd/sim/trace.hh"
 #include "simplessd/util/algorithm.hh"
 
+#include "simplessd/isc/utils/debug.hh"
+#define PR_SECTION SimpleSSD::LOG_COMMON
+
 namespace SIL {
 
 namespace NVMe {
@@ -85,6 +88,7 @@ PRP::PRP(uint64_t size) : memory(nullptr), capacity(0), ptr1(0), ptr2(0) {
   if (mode == 1) {
     ptr1 = (uint64_t)memory;
     ptrList.push_back(ptr1);
+    pr("PRP Mode 1 (PRP %lX + None)", ptr1);
   }
   else {
     ptr1 = (uint64_t)memory;
@@ -93,6 +97,7 @@ PRP::PRP(uint64_t size) : memory(nullptr), capacity(0), ptr1(0), ptr2(0) {
     ptrList.push_back(ptr2);
 
     if (mode == 3) {
+      pr("PRP Mode 3 (PRP %lX + List %lX (%lu))", ptr1, ptr2, lastEntryCount);
       uint64_t *listPtr = (uint64_t *)ptr2;
       uint8_t *page = memory + PAGE_SIZE * 2;
       uint32_t entry = 0;
@@ -116,6 +121,8 @@ PRP::PRP(uint64_t size) : memory(nullptr), capacity(0), ptr1(0), ptr2(0) {
         }
       }
     }
+    else
+      pr("PRP Mode 2 (PRP %lX + PRP %lX)", ptr1, ptr2);
   }
 }
 
@@ -148,17 +155,35 @@ void PRP::readData(uint64_t offset, uint64_t size, uint8_t *buffer) {
 }
 
 void PRP::writeData(uint64_t offset, uint64_t size, uint8_t *buffer) {
-  uint64_t begin = offset / PAGE_SIZE;
-  uint64_t end = DIVCEIL(offset + size, PAGE_SIZE);
-  uint64_t copied = 0;
+  auto doCopyPage = [](const uint8_t *src, uintptr_t dst, size_t len) {
+    pr("Host copy %lu bytes from %lX to %lX", len, src, dst);
+    memcpy((void *)dst, src, len);
+  };
 
-  for (uint64_t i = begin; i < end; i++) {
-    uint64_t ptr = ptrList[i] + (offset - i * PAGE_SIZE);
-    uint64_t len = MIN((i + 1) * PAGE_SIZE - offset, size - copied);
+  int len = std::min(size, PAGE_SIZE - offset % PAGE_SIZE);
+  uint8_t *from = buffer;
 
-    memcpy((uint8_t *)ptr, buffer, len);
+  doCopyPage(from, ptrList[0], len);
+  size -= len;
 
-    copied += len;
+  if (size > PAGE_SIZE) {
+    // mode 2
+    if (size <= PAGE_SIZE * 2) {
+      from += len;
+      len = size;
+      doCopyPage(from, ptrList[1], len);
+    }
+    // mode 3 (prplist)
+    else {
+      const uintptr_t *list = (uintptr_t *)ptrList[1];
+      for (size_t i = 0; size > 0; ++i, size -= len) {
+        pr("PRPList Ent[%u]: %lX", i, list[i]);
+
+        from += len;
+        len = std::min((size_t)PAGE_SIZE, size);
+        doCopyPage(from, list[i], len);
+      }
+    }
   }
 }
 

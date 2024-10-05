@@ -17,6 +17,9 @@ ODIR		= $(shell realpath ${OUTPUT_DIR})
 run:
 	./simplessd-standalone ${SYSCONF} ${SSDCONF} ${ODIR}
 
+debug:
+	gdb -q --args ./simplessd-standalone ${SYSCONF} ${SSDCONF} ${ODIR}
+
 vrun:
 	${VALGRIND_CMD} ./simplessd-standalone ${SYSCONF} ${SSDCONF} ${ODIR}
 

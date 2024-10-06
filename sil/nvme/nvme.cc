@@ -23,7 +23,7 @@
 #include "simplessd/util/algorithm.hh"
 
 #include "simplessd/isc/utils/debug.hh"
-#define PR_SECTION LOG_COMMON
+#define PR_SECTION SimpleSSD::LOG_COMMON
 
 namespace SIL {
 
@@ -469,12 +469,7 @@ void Driver::dmaRead(uint64_t addr, uint64_t size, uint8_t *buffer,
   iter.buffer = buffer;
   iter.context = context;
 
-  // char msg[51] = {0};
-  // snprintf(msg, 50, "Driver::DMA %lu bytes from %lX\n", size, addr);
-  // if (*(uint64_t*)addr == UINT64_MAX)
-  //   SimpleSSD::Utils::pipe2xxd(msg, (char *)addr - 4096, size, NULL);
-
-
+  pr("new DMA Entry %lX+%lu -> %lX", addr, size, buffer);
   if (!dmaReadPending) {
     submitDMARead();
   }
@@ -509,6 +504,7 @@ void Driver::submitDMARead() {
                                        pcieGen, pcieLane, iter.size);
 
   if (iter.buffer) {
+    pr("SIL DMARead: %lX + %lu -> %p ", iter.addr, iter.size, iter.buffer);
     memcpy(iter.buffer, (uint8_t *)iter.addr, iter.size);
   }
 

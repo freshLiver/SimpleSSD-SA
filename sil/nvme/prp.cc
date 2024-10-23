@@ -166,7 +166,7 @@ void PRP::writeData(uint64_t offset, uint64_t size, uint8_t *buffer) {
   doCopyPage(from, ptrList[0], len);
   size -= len;
 
-  if (size > PAGE_SIZE) {
+  if (size >= PAGE_SIZE) {
     // mode 2
     if (size <= PAGE_SIZE) {
       from += len;

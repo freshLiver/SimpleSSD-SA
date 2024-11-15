@@ -25,6 +25,12 @@ fsa=(
     "241009-215208 -d4-f2000-3g-fsa"
     "241009-220746 -d4-f4000-3g-fsa"
 )
+fsa_pft_1isc=(
+    "241113-051622- d1-f500-pft-1isc"
+    "241113-053251- d1-f1000-pft-1isc"
+    "241113-054929- d1-f2000-pft-1isc"
+    "241113-060642- d1-f4000-pft-1isc"
+)
 host=(
     "241010-053959 -d1-f500-3g-host"
     "241010-055507 -d1-f1000-3g-host"
@@ -38,19 +44,20 @@ host=(
 
 
 workloads=(
-    "host host[@] *"
+    # "host host[@] *"
     # "fsa fsa[@] *"
+    "fsa-pft-1isc-d1 fsa_pft_1isc[@] * .debug"
 )
 
 for type_works in "${workloads[@]}"; do
-    read type works filter <<< "$type_works"
+    read type works filter sfx <<< "$type_works"
     outdir="$DSTDIR/$type"
 
     # extract info from this type of workloads
     for work in "${!works}"; do
         read timestamp pfx <<< "$work"
 
-        gem5LogFile="$SRCDIR/$type/$timestamp$pfx.log"
+        gem5LogFile="$SRCDIR/$type/$timestamp$pfx$sfx.log"
         hostLogFile="$SRCDIR/$type/$timestamp$pfx.host.log"
         if [[ ! -e "$gem5LogFile" || ! -e "$hostLogFile" ]]; then
             echo "Log file $gem5LogFile or $hostLogFile is missing"

@@ -11,7 +11,7 @@ jobs:
           token: ${{ secrets.SSS_PAT_EXP250130 }}
           submodules: recursive
       - name: prepare env
-        run: sudo apt-get -y update && sudo apt-get -y install build-essential cmake e2fsprogs libext2fs-dev libzstd-dev libpcre++-dev
+        run: sudo apt-get -y update && sudo apt-get -y install bc build-essential cmake e2fsprogs libext2fs-dev libzstd-dev libpcre++-dev
       - name: build
         run: cmake -B . && cmake --build . -j`nproc`
       - name: create and init ext4 disk

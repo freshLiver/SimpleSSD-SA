@@ -11,50 +11,47 @@ function check_ret() {
     fi
 }
 
-WORKLOAD_NAME="statdir"
+WORKLOAD_NAME="stats"
 SRCDIR="$HOME/Dropbox/Notes/_david/research/logs/$WORKLOAD_NAME"
 DSTDIR="workloads/$WORKLOAD_NAME"
 
-fsa_1k_pft_1isc_8m=(
-    "241226-043828-1024- x1500-fsa-1isc-pft-8m-dram"
-    "241226-045636-1024- x2000-fsa-1isc-pft-8m-dram"
-    "241226-051330-1024- x1000-fsa-1isc-pft-8m-dram"
-    "241226-052916-1024- x500-fsa-1isc-pft-8m-dram"
+fsa=(
+    "240907-102634- 1048576-test"
+    "240907-104142- 262144-test"
+    "240907-105630- 65536-test"
+    "240907-111127- 16384-test"
+    "240907-112627- 4096-test"
 )
-host_1k_8m=(
-    "241226-054428-1024- x2000-host-8m"
-    "241226-060134-1024- x1500-host-8m"
-    "241226-061801-1024- x1000-host-8m"
-    "241226-063357-1024- x500-host-8m"
+host=(
+    "240907-152450- 1048576-test"
+    "240907-154107- 262144-test"
+    "240907-155719- 65536-test"
+    "240907-161325- 16384-test"
+    "240907-162919- 4096-test"
 )
-fsa_pft_1isc_8m=(
-    "241209-111700- 4096-x2000-ls-fsa-small-dram"
-    "241209-114112- 256-x2000-ls-fsa-small-dram"
-    "241209-120502- 512-x2000-ls-fsa-small-dram"
-)
-host_8m=(
-    "241209-143346- 4096-x2000-ls-host-small-dram"
-    "241209-145039- 256-x2000-ls-host-small-dram"
-    "241209-150716- 512-x2000-ls-host-small-dram"
+host3go2=(
+    "240908-193528- 1048576-3go2"
+    "240908-195131- 262144-3go2"
+    "240908-200704- 65536-3go2"
+    "240908-202251- 16384-3go2"
+    "240908-203839- 4096-3go2"
 )
 
 
 workloads=(
-    "host-8m-ls host_1k_8m[@] * .debug"
-    # "host-o2-8m host_8m[@] * .debug"
-    # "fsa-1isc-pft-8mram fsa_pft_1isc_8m[@] * .debug"
-    "fsa-1isc-pft-8m fsa_1k_pft_1isc_8m[@] * .debug"
+    "host-3go2 host3go2[@] *"
+    # "fsa fsa[@] *"
 )
 
 for type_works in "${workloads[@]}"; do
-    read type works filter sfx <<< "$type_works"
+    read type works filter <<< "$type_works"
     outdir="$DSTDIR/$type"
 
     # extract info from this type of workloads
     for work in "${!works}"; do
         read timestamp pfx <<< "$work"
 
-        gem5LogFile="$SRCDIR/$type/$timestamp$pfx$sfx.log"
+        gem5LogFile="$SRCDIR/$type/$timestamp$pfx.log"
         hostLogFile="$SRCDIR/$type/$timestamp$pfx.host.log"
         if [[ ! -e "$gem5LogFile" || ! -e "$hostLogFile" ]]; then
             echo "Log file $gem5LogFile or $hostLogFile is missing"

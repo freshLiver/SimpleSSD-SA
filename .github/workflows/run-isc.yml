@@ -15,10 +15,10 @@ jobs:
       - name: build
         run: cmake -B . && cmake --build . -j`nproc`
       - name: create and init ext4 disk
-        run: make -f simplessd/isc/scripts/Makefile ext4-init EXT4_INIT_SCRIPT_FILES=md5-many-4k.sh
+        run: make -f simplessd/isc/scripts/Makefile ext4-init EXT4_INIT_SCRIPT_FILES=md5-many.sh
       - name: link ext4 disk as ssd disk
         run: ln -s /tmp/nvme.img .
       - name: run
-        run: make -f scripts/Makefile test-slet KEYS="path" VALUES="/md5/x100/" SLET_ID=2
+        run: make -f scripts/Makefile test-slet KEYS="path" VALUES="/md5/256-x500/" SLET_ID=2
       - name: show logs
         run: bash -c 'cat ./logs-sa/$(date +%y%m)/test-slet/sssa-test-slet/*.debug.log'
